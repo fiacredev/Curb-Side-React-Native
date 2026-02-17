@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   link: {
-    marginTop: 15,
+    marginTop: 0,
     paddingVertical: 15,
   },
 });
