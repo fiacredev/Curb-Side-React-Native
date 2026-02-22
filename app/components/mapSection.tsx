@@ -1,28 +1,25 @@
 import React from "react";
 import MapView, {Marker} from "react-native-maps";
 import { StyleSheet } from "react-native";
+import { useLiveLocation } from "../hooks/useLiveLocation";
 
 export default function MapSection(){
+
+    const coords = useLiveLocation();
+
+    if (!coords) return null;
+
     return(
         <MapView
             style = {styles.map}
-            initialRegion={{
-                latitude: 37.78825,
-                longitude: -122.4324,
+            region={{
+                latitude: coords.latitude,
+                longitude: coords.longitude,
                 latitudeDelta: 0.01,
                 longitudeDelta: 0.01,
             }}
         >
-        <Marker 
-        
-          coordinate={{
-          latitude: 37.78825,
-          longitude: -122.4324,
-        }}
-
-        title="you"
-
-        />
+        <Marker coordinate={coords} title="Driiver" />
         </MapView>
     );
 }
