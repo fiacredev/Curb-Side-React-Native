@@ -9,7 +9,7 @@ export default function App(){
     return(
         <PaperProvider>
             <SafeAreaView style={styles.container}>
-                <DriverHomeScreen/>
+                <DriverHomeScreen />
             </SafeAreaView>
         </PaperProvider>
     )
