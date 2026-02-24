@@ -1,28 +1,38 @@
-import { useEffect, useState } from "react";
-import { requestLocationpermission, startLocationTracking } from "../services/locationService";
+import * as Location from "expo-location";
+import { useEffect, useState, useRef } from "react";
 
-export function useLiveLocation(){
-    const [coords, setCoords] = useState<any>(null);
+export function useLiveLocation(isOnline: boolean) {
+  const [coords, setCoords] = useState<Location.LocationObjectCoords | null>(null);
+  const watcher = useRef<Location.LocationSubscription | null>(null);
 
-    useEffect(() =>{
-        let subscription: any;
+  useEffect(() => {
+    if (!isOnline) {
+      // stop tracking if offline
+      watcher.current?.remove();
+      watcher.current = null;
+      return;
+    }
 
-        async function init(){
-            try{
-                await requestLocationpermission();
-                subscription = await startLocationTracking((newCoords)=>{
-                    setCoords(newCoords);
-                });
-            } catch (err){
-                console.log("location:", err);
-            }
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return;
+
+      watcher.current = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          timeInterval: 5000,  // every 5 sec
+          distanceInterval: 10, // or every 10 meters
+        },
+        (location) => {
+          setCoords(location.coords);
         }
+      );
+    })();
 
-        init();
+    return () => {
+      watcher.current?.remove();
+    };
+  }, [isOnline]);
 
-        return () =>{
-            if (subscription) subscription.remove();
-        };
-    }, []);
-    return coords;
+  return coords;
 }
