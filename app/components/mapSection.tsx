@@ -5,7 +5,7 @@ import { useLiveLocation } from "../hooks/useLiveLocation";
 
 export default function MapSection(){
 
-    const coords = useLiveLocation();
+    const coords = useLiveLocation(true);
 
     if (!coords) return null;
 
