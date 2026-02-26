@@ -1,39 +1,86 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Button, Card, Text, Portal, Dialog } from "react-native-paper"
+import { Delivery, DeliveryStatus } from "../services/deliveryService";
 
-interface Props {
-    isOnline: boolean,
-    setIsOnline: (value: boolean) => void;
-}
-
-export default function BottomPanel({isOnline, setIsOnline}: Props){
-
-    const handleToggle = () =>{
-        setIsOnline(!isOnline);
+    interface BottomPanelProps {
+      isOnline: boolean;
+      setIsOnline: (val: boolean) => void;
+      delivery: Delivery | null;
+      updateStatus: (status: DeliveryStatus) => void;
     }
 
-    const handleGoOnline = () =>{
-        setIsOnline(true);
+
+    const BottomPanel: React.FC<BottomPanelProps> = ({
+        isOnline,
+        setIsOnline,
+        delivery,
+        updateStatus,
+    }) => {
+
+    const toggleOnline = () => setIsOnline(!isOnline);
+    const handleGoOnline = () => setIsOnline(true);
+
+    const renderWorkflowButton = () => {
+        
+    if (!delivery) {
+      if (!isOnline) {
+        return <Text style={styles.message}>Go Online to receive deliveries</Text>;
+      } else {
+        return (
+          <Button
+            mode="contained-tonal"
+            onPress={() => updateStatus("accepted")}
+          >
+            Accept Delivery...
+          </Button>
+        );
+      }
     }
+
+    switch (delivery.status) {
+      case "accepted":
+        return (
+          <Button mode="contained" onPress={() => updateStatus("arrived")}>
+            Arrived
+          </Button>
+        );
+      case "arrived":
+        return (
+          <Button mode="contained" onPress={() => updateStatus("in_progress")}>
+            Start Trip
+          </Button>
+        );
+      case "in_progress":
+        return (
+          <Button mode="contained" onPress={() => updateStatus("completed")}>
+            Complete
+          </Button>
+        );
+      case "completed":
+        return <Text style={styles.message}>Delivery completed</Text>;
+      default:
+        return null;
+    }
+  };
 
     return(
         <>
-            <Card style={styles.card}>
-                <Card.Content>
-                    <Text variant="titleMedium" style={styles.text}>
-                    Status: {isOnline ? "online" : "offline"}
-                    </Text>
-                </Card.Content>
-
-                <Card.Actions>
-                    <Button mode="contained" onPress={handleToggle}>
+            <View style={styles.container}>
+                <Button
+                    mode={isOnline ? "contained" : "outlined"}
+                    onPress={toggleOnline}
+                    style={styles.onlineButton}
+                >
                     {isOnline ? "Go Offline" : "Go Online"}
-                    </Button>
-                </Card.Actions>
-            </Card>
+                </Button>
+                <View style={styles.workflow}>{renderWorkflowButton()}</View>
+            </View>
 
-            //    blocking app popup logic here implemented corectly.
+
+            {/* in the meantime this codes bottom not being used for while */}
+
+            {/* //    blocking app popup logic here implemented corectly. */}
         
         <Portal>
             <Dialog
@@ -44,7 +91,7 @@ export default function BottomPanel({isOnline, setIsOnline}: Props){
             <Dialog.Title>You are offline</Dialog.Title>
             <Dialog.Content>
                 <Text>
-                    please you can't do anything, app blocked regardless going online
+                    Please, you can't do anything regardless going online. APP BLOCKED 🧲⁉
                 </Text>
             </Dialog.Content>
             <Dialog.Actions>
@@ -54,10 +101,14 @@ export default function BottomPanel({isOnline, setIsOnline}: Props){
             </Dialog.Actions>
             </Dialog>
         </Portal>
+
+
     </>
 
         );
     }
+
+export default BottomPanel;
 
 const styles = StyleSheet.create({
     card: {
@@ -74,5 +125,24 @@ const styles = StyleSheet.create({
 
     text: {
         color:"#fff"
-    }
+    },
+    container: {
+    padding: 16,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderColor: "#ddd",
+   },
+    onlineButton: {
+    marginBottom: 12,
+    },
+
+    workflow: {
+        flexDirection: "row",
+        justifyContent: "center",
+    },
+    message: {
+        color: "gray",
+        textAlign: "center",
+        fontSize: 16,
+    },
 })
