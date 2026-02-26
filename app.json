@@ -5,36 +5,53 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./icon.png",
+    "scheme": "driverapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+
     "splash": {
       "image": "./splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "scheme": "driverapp",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourcompany.driverapp"
+      "bundleIdentifier": "com.yourcompany.driverapp",
+      "infoPlist": {
+        "UIBackgroundModes": ["location"],
+        "NSLocationWhenInUseUsageDescription": "This app needs your location to track deliveries.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs background location to update delivery status even when the app is closed."
+      }
     },
+
     "android": {
+      "package": "com.yourcompany.driverapp",
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
       "adaptiveIcon": {
         "foregroundImage": "./icon.png",
         "backgroundColor": "#E6F4FE"
       },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.yourcompany.driverapp"
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION"
+      ]
     },
+
     "web": {
       "output": "static",
       "favicon": "./icon.png"
     },
+
     "plugins": [
       "expo-router",
       "expo-splash-screen"
     ],
+
     "assetBundlePatterns": ["**/*"],
+
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
