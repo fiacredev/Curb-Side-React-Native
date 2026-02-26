@@ -2,61 +2,107 @@ import  React, {useEffect, useState} from "react";
 import { View, StyleSheet } from "react-native";
 import MapSection from "../components/mapSection";
 import BottomPanel from "../components/BottomPanel";
+import { Delivery, updateDeliveryStatus, DeliveryStatus } from "../services/deliveryService";
 import { useLiveLocation } from "../hooks/useLiveLocation";
 import { io, Socket } from "socket.io-client";
+import * as Location from "expo-location"
 
 
 export default function DriverHomeScreen(){
 
-    const SERVER_URL = "https://curb-side-backend.onrender.com";
+const SERVER_URL = "https://curb-side-backend.onrender.com";
 
-    const [socket, setSocket] = useState<Socket | null>(null);
-    const [isOnline, setIsOnline] = useState(false);
-    const coords = useLiveLocation(isOnline);
+const [isOnline, setIsOnline] = useState(false);
+const [socket, setSocket] = useState<Socket | null>(null);
+const coords = useLiveLocation(isOnline);
+const [delivery, setDelivery] = useState<any | null>(null);
+        
 
-            useEffect(() => {
-        const s = io(SERVER_URL, {
-            transports: ["websocket"],
-        });
-
-        s.on("connect", () => {
-            console.log("socket connected:", s.id);
-        });
-
-        s.on("disconnect", () => {
-            console.log("socket disconnected");
-        });
-
-        setSocket(s);
-
-        return () => {
-            s.disconnect();
-        };
-        }, []);
+    useEffect(() => {
+    const s = io(SERVER_URL, {
+        transports: ["websocket"],
+    });
+    s.on("connect", () => {
+        console.log("socket connected:", s.id);
+    });
+    s.on("disconnect", () => {
+        console.log("socket disconnected");
+    });
+    setSocket(s);
+    return () => {
+        s.disconnect();
+    };
+    }, []);
+    
+    // function to make sure that everything is going well or not
 
     useEffect(()=>{
         if (!coords || !isOnline) return;
         console.log("about to emit location...");
         console.log("Socket existss:", !!socket);
         console.log("Socket connected:", socket?.connected);
-
-
         if(!socket || !socket.connected) return;
         console.log("socket not found..")
-
         socket.emit("driver:location",{
             driverId: "6995a1441287438bcc1b863d",
             lat: coords.latitude,
             lng:coords.longitude
         });
-
         console.log("location emitted");
     },[coords,isOnline]);
+
+
+
+
+    // deal with background tracking even when the app is minimized
+
+    // const startBackgroundTracking = async () => {
+    // await Location.startLocationUpdatesAsync("background-location-task", {
+    //     accuracy: Location.Accuracy.High,
+    //     timeInterval: 5000,
+    //     distanceInterval: 10,
+    //     showsBackgroundLocationIndicator: true,
+    //     foregroundService: {
+    //     notificationTitle: "Driver Tracking",
+    //     notificationBody: "Your location is being tracked",
+    //     },
+    // });
+    // };
+
+    // function to deal with stop backgound tracking
+
+    // const stopBackgroundTracking = async () => {
+    // await Location.stopLocationUpdatesAsync("background-location-task");
+    // };
+
+    // // useEffect to deal with making sure that some driver is online then track unless that stop tracking 
+
+    // useEffect(()=>{
+    //     if(isOnline){
+    //         startBackgroundTracking();
+    //     }else{
+    //         stopBackgroundTracking();
+    //     }
+    // },[isOnline]);
+
+
+    // deal with updating status of delivery
+
+  const handleUpdateStatus = async (status: DeliveryStatus) => {
+        try {
+        const updatedDelivery = await updateDeliveryStatus( "6995a1441287438bcc1b8641", status);
+        console.log("Server Responded with: ", updatedDelivery );
+        setDelivery(updatedDelivery); // trust serveer response
+        } catch (error) {
+        console.log("Status update failed:", error);
+    }
+    };
+
     
     return(
         <View style={styles.container}>
-            <MapSection />
-            <BottomPanel isOnline={isOnline} setIsOnline={setIsOnline}/>
+            <MapSection isOnline={isOnline} delivery={delivery}/>
+            <BottomPanel isOnline={isOnline} setIsOnline={setIsOnline} delivery={delivery} updateStatus={handleUpdateStatus}/>
         </View>
     );
 }
