@@ -14,6 +14,8 @@ export default function MapSection({ isOnline, delivery }: Props){
     const coords = useLiveLocation(isOnline);
     const mapRef = React.useRef<MapView>(null);
     const markerRef = React.useRef<React.ElementRef<typeof Marker>>(null);
+
+    // mapRef ref not supported and gonna be removed soon
     
 
         React.useEffect(() => {
