@@ -84,7 +84,8 @@ export default function MapSection({ isOnline, delivery }: Props){
             }}
             >
 
-            <Marker ref={markerRef} coordinate={coords} title="Driiver" />
+            {/* this marker ref not supported and is about to be removed soon */}
+            <Marker ref={markerRef} coordinate={coords} title="Driver" />
 
             {delivery?.pickup && (
             <Marker
