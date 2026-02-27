@@ -1,6 +1,6 @@
 import React from "react";
 import { View ,StyleSheet } from "react-native";
-import MapView, {Marker, PROVIDER_GOOGLE} from "react-native-maps";
+import MapView, {Marker, PROVIDER_GOOGLE, AnimatedRegion} from "react-native-maps";
 import { Delivery } from "../services/deliveryService";
 import { useLiveLocation } from "../hooks/useLiveLocation";
 
@@ -13,38 +13,59 @@ export default function MapSection({ isOnline, delivery }: Props){
 
     const coords = useLiveLocation(isOnline);
     const mapRef = React.useRef<MapView>(null);
-
+    const markerRef = React.useRef<React.ElementRef<typeof Marker>>(null);
     
-    React.useEffect(() => {
-        if (!mapRef.current || !coords) return;
-        
-        if (delivery?.pickup && delivery?.dropoff) {
-            mapRef.current.fitToCoordinates(
-                [
-                    {
-                        latitude: coords.latitude,
-                        longitude: coords.longitude,
-          },
-          {
-              latitude: delivery.pickup.lat,
-              longitude: delivery.pickup.lng,
-            },
+
+        React.useEffect(() => {
+        if (!coords) return;
+
+        markerRef.current?.animateMarkerToCoordinate(
             {
-                latitude: delivery.dropoff.lat,
-                longitude: delivery.dropoff.lng,
+            latitude: coords.latitude,
+            longitude: coords.longitude,
             },
-        ],
+            800 // duration ms
+        );
+        }, [coords]);
+
+            
+        React.useEffect(() => {
+        if (!mapRef.current || !coords) return;
+
+        const points: any[] = [
         {
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+        },
+
+        ];
+            
+        if (delivery?.pickup && delivery.status === "accepted") {
+        points.push({
+            latitude: delivery.pickup.lat,
+            longitude: delivery.pickup.lng,
+        });
+        }
+
+        if (delivery?.dropoff) {
+        points.push({
+            latitude: delivery.dropoff.lat,
+            longitude: delivery.dropoff.lng,
+        });
+        }
+
+        if (points.length > 1) {
+        mapRef.current.fitToCoordinates(points, {
             edgePadding: { top: 100, right: 50, bottom: 300, left: 50 },
             animated: true,
-        }
-    );
-}
-}, [delivery, coords]);
+        });
+    }
+    }, [delivery, coords]);
+
+    if (!coords) return null;
 
 //    please be and pay atttention on this have to be rendered last to prevernt error of rendering before previous hook
 
-    if (!coords) return null;
 
     return(
         <MapView
@@ -61,7 +82,7 @@ export default function MapSection({ isOnline, delivery }: Props){
             }}
             >
 
-            <Marker coordinate={coords} title="Driiver" />
+            <Marker ref={markerRef} coordinate={coords} title="Driiver" />
 
             {delivery?.pickup && (
             <Marker
